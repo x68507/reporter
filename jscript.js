@@ -100,10 +100,8 @@ $(document).ready(function(){
 			$('body').append('<div id="cm" class="h no-text hover" data-search="'+text+'" data-var="'+_var+'"></div>');
 				$('#cm').attr('data-rc',$(this).closest('tbody tr').index()+','+$(this).index())
 				$('#cm').append('<div id="cm-copy" data-tag="copy">Copy</div><hr class="hrcm">');
-					prepCopy();	
-				console.log( + ' || window: ' + $(window).height())
+					prepCopy(text);	
 			var _y = (e.clientY+250>$(window).height()?$(window).height()-250:e.clientY)
-			console.log(_y)
 			$('#cm').css({'left':e.clientX,'top':_y});
 			$.get('xml_tree.xml',function(data){
 				$(data).find('file').each(function(){
