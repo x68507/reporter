@@ -1,0 +1,116 @@
+/*#nav-container{position:relative;;height:30px;width:100%;display:inline}*/
+/*#navspan{margin-top:-10px}*/
+#navspan{z-index:10000;position:static !important;}
+
+
+body, html {
+  height: 100%;
+  font-family: 'trebuchet MS','Lucida sans',Arial;
+}
+
+body{word-wrap:break-word !IMPORTANT}
+
+#sqltext{width:98%;height:150px}
+#editor { 
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+}
+#login{display:none;position:absolute;width:200px;left:calc(50% - 100px);left:45%;top:20%;z-index:10;background:white;padding:10px;border:1px solid black}
+#click{position:absolute;width:100%;height:100%;left:0;top:0;background:gray;opacity:0.4;filter:alpha(opacity=40);}
+.var{width:100px}
+
+
+
+.rhn{position:absolute;right:10px;}
+
+#tblData tbody td,thead th{max-width:300px !important}
+#tblData tbody tr:hover{background:#f3c922 !important}
+.highlight{background:#fff71c !important}
+#export,#init-hide{display:none}
+
+#init-hide{padding-bottom:5px}
+.vcon{padding-right:10px;height:30px !important}
+#export,.mobile,.vcon,.foofilter{display:inline}
+.mobile{position:relative;width:100%}
+.foofilter{padding-left:10px}
+#header{background-color:white;position:fixed;height:100px;width:100%;z-index:10;top:0px;left:0px;z-index:10}
+#header *{vertical-align:middle}
+.cclicker-bg{background:#696969;opacity:0.8;filter: alpha(opacity = 80)}
+#cclicker{position:absolute;left:0px;top:0px;width:100%;height:100%;z-index:200100}
+#cm{position:absolute;min-width:150px;max-height:250px;overflow-x:hidden;white-space:nowrap;overflow-y:visible;z-index:200105;background:#FFFFFF;box-shadow: 3px 3px 2px #8A8A8A;border:1px solid #BABABA;font-family: 'trebuchet MS','Lucida sans',Arial;font-size:0.9em}
+#hr-resize:hover{cursor:n-resize}
+.cm-file:not(.hrcm),#cm-copy{padding:2px 5px}
+.hrcm { display: block; height: 1px;border: 0; border-top: 1px solid #E9E9E9;margin: 1em 0; padding: 0; font-size:0.2em}
+
+.cm-file:hover{background:#4281F4 !important;color:#fff !important}
+/*
+#global-zeroclipboard-html-bridge:hover::before{content:'Copy';color:#fff;padding:2px 5px;cursor: pointer;cursor: hand;font-size:0.9em}
+#global-zeroclipboard-html-bridge.hidden:hover::before{content:'';height:0;width:0}
+*/
+.h{display:none}
+#cclicker-text{z-index:200101;color:white;width:70%;height:80%;overflow-y:auto;}
+.hover:hover{cursor: pointer !important; cursor: hand !important}
+.no-text{-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none}
+#cclicker-text table{color:white;font-size:1.2em;width:100%;min-width:650px;}
+#cclicker-text table tr td{text-align:justify;text-justify:inter-word;vertical-align:text-top;padding-bottom:20px}
+#filtered-number{padding-left:10px}
+
+@media only screen and (min-device-width : 481px){
+	body,html{overflow-y:hidden;}
+	#filter{font-size:16px;width:415px;height:19px}
+}
+
+.fht-tbody{overflow-y:scroll !important}
+#comments{font-family:"Courier New", Courier, monospace;color:#008000}
+@media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
+	.mh{display:none !important}
+	
+	.vcon,.mobile{display:block;height:40px !important}	
+	.vcon:after{content:'\a';white-space:pre}
+
+	.vcon span,.mobile span{line-height:30px}
+	
+	
+	.vcon input[type="checkbox"]{position:absolute;right:60px;}
+	.vcon input[type="text"],#selquery,.mobile input[type="text"]{width:200px;position:absolute;right:10px;font-size:1.2em;height:30px}
+	#b-execute{height:35px;width:100px;font-size:1.2em}
+	
+}
+
+/*CODE FROM 
+
+http://css-tricks.com/examples/ShapesOfCSS/
+
+*/
+th{position:relative}
+.mg-container{position:absolute;right:3px;top:-2px;}
+.mg
+{
+ font-size: 1.2em; /* This controls the size. */
+ display: inline-block;
+ width: 0.4em;
+ height: 0.4em;
+ border: 0.1em solid black;
+ position: relative;
+ border-radius: 0.35em;
+ margin-right:5px;
+}
+.mg::before
+{
+ content: "";
+ display: inline-block;
+ position: absolute;
+ right: -0.25em;
+ bottom: -0.1em;
+ border-width: 0;
+ background: black;
+ width: 0.35em;
+ height: 0.08em;
+ -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+     -ms-transform: rotate(45deg);
+      -o-transform: rotate(45deg);
+}

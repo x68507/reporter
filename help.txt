@@ -1,0 +1,41 @@
+<h3><u>Filter Tips</u></h3>
+<table>
+	<tr>
+		<td><b>OR</b></td><td>:</td><td>Independently searches for terms on the left and right side of 'OR'.  By default, 'AND' is used.  [NOTE: nested OR does not work]</td>
+	</tr>
+	<tr>
+		<td style="width:125px"><i>search_term</i></td><td style="width:25px">:</td><td style="width:100%;min-width:500px">Searches for any matched word</td>
+	</tr>
+	<tr>
+		<td>"<i>search terms</i>"</td><td>:</td><td>Performs an exact search for all terms inside the double quotes (case insensitive).  Will find partial matches.</td>
+	</tr>
+	<tr>
+		<td>""<i>search terms</i>""</td><td>:</td><td>Performs an exact search for all terms inside the double quotes (case insensitive).  Will only find whole matches in the cell.</td>
+	</tr>
+	<tr>
+		<td><i>column:term</i></td><td>:</td><td>Searches in the specific column defined by <i>column:</i></td>
+	</tr>
+	<tr>
+		<td>-<i>search_term</i></td><td>:</td><td>Negates the following search term (use -"<i>search terms</i>" to negate the entire phrase)</td>
+	</tr>
+	<tr>
+		<td><b>></b>, <b><</b>, <b>=</b>, <b>!</b></td><td>:</td><td>Math Operators.  Need to use with a specific <i>column:</i> and will convert everything to a number (will remove all results with text)</td>
+	</tr>
+	<tr>
+		<td><b>[BLANK]</b></td><td>:</td><td>Filters out any cells with text in them.  Need to use with a specific <i>column:</i></td>
+	</tr>
+</table>
+<hr>
+<h3><u>SQL Tips</u></h3>
+<table>
+	<tr>
+		<td style="width:125px">*</td><td style="width:25px">:</td><td style="width:100%;min-width:500px"><b>PREVENT WORD WRAP</b> - use in the column name to prevent from wrapping (i.e., dates or part numbers)</td>
+	</tr>
+	<tr>
+		<td>!</td><td>:</td><td><b>SHOW COLUMN ON MOBILE</b> - used to make current column always show on mobile rather than hidden in responsive flow (NOTE: first column is always visible on mobile)</td>
+	</tr>
+	<tr>
+		<td><b>'</b>[colname]<b>'</b></td><td>:</td>
+		<td><b>AUTOMATICALLY HIGHLIGHT RESULTS</b> - used to highlight results that match all the @VARIABLE(s).  If you don't want automatic highlighting, do not use single quotes to name your columns</b></td>
+	</tr>
+</table>
