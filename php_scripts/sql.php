@@ -149,7 +149,7 @@
 				if (strpos($name,'|')){
 					$t = explode('|',$name);
 					$x = "data-var='".trim($t[1])."'";
-					$mg = "<span class='mg-container'><span class='mg'></span></span>";
+					$mg = "<span class='mg-container mh'><span class='mg'></span></span>";
 				}
 				
 		$str = "<th $x ".((substr($name,0,1)!='!' && $dex!=0)?'data-hide="phone"':'')." style='white-space:nowrap' ".(substr($name,-1)=='*'?'data-type="numeric"':'').">$mg<span data-title='".strtoupper($title)."'>$title</span></th>";

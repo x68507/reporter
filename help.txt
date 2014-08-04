@@ -1,3 +1,17 @@
+<h2>NOTE: this is designed for -webkit browsers, primarily Google Chrome</h2>
+<h3><u>General Tips</u></h3>
+<ul>
+	<li>Columns with an "<span class="mg white"></span>" will provide a Right Click context menu that will allow you to do a "<b>Deep Search</b>", meaning the current cell value will become the query parameters for any of the visible reports</li>
+	<ul>
+		<li>If you Ctrl+Click on any of the "<b>Deep Search</b>" options, the report will open up in a new tab.  If you single click on the "<b>Deep Search</b>", the report will replace the current tab</li>
+	</ul>
+	<li>Once you have results and you have the proper filters in place (via the filter bar), you can copy the URL and send this to anyone and the report will automatically run.  Likewise, if there is a specific report that you use everyday, you can generate the report and bookmark so you have easy access to it</li>
+	<li>Right Click on a Header column cell to remove duplicates in the column.  This will keep the first entry found based off of current sorting and filtering.</li>
+	<li>To highlight multiple rows, Click on the first row then Ctrl+Click on the last row.  This allows you to easily focus in on certain rows using the <b>Toggle Highlights</b> button</li>
+	<li>The <b>Export</b> button will export only the <i>visible</i> rows based off of filtering to an Excel .csv file.  The name is automatically modified to reflect the current report and search query</li>
+</ul>
+
+
 <h3><u>Filter Tips</u></h3>
 <table>
 	<tr>

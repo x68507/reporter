@@ -2,20 +2,24 @@
 <xml><file><filename>BOM_JO</filename><contents>/*Provides a complete Job BOM for entered and children Jobs*/
 DECLARE @JO varchar(60) SET @JO = '' 
 WITH jo_tree AS(
-	SELECT m.fjobno,m.fsub_from,m.fpartno,m.fpartrev
-	  FROM jomast m
-	  WHERE  m.fjobno like @JO
-  UNION ALL
-	SELECT m.fjobno,m.fsub_from,m.fpartno,m.fpartrev
-	  FROM jomast m
-	  INNER JOIN jo_tree AS c ON c.fjobno = m.fsub_from
+	SELECT m.fjobno,m.fsub_from,m.fpartno,convert(varchar(255),'') indent
+		, 1 AS Level, CAST(m.identity_column AS VARCHAR(255)) AS Path
+		FROM jomast m
+		WHERE  m.fjobno like @JO
+	UNION ALL
+	SELECT m.fjobno,m.fsub_from,m.fpartno,convert(varchar(255),replicate('&amp;nbsp',4*(Level))) indent
+		, Level + 1, CAST(Path + '.' + CAST(m.identity_column AS VARCHAR(255)) AS VARCHAR(255)) AS Path
+		FROM jomast m
+		INNER JOIN jo_tree AS c ON c.fjobno = m.fsub_from
 )
-SELECT mm.fsub_from 'Par_JO',mm.fjobno 'Child_JO | JO',mm.fpartno 'Par_Part',mm.fpartrev 'Par_REV',j.fbompart 'Child_Part',j.fbomrev 'Child_REV',j.factqty 'Qty'
-,i.fdescript 'Child_Desc',i.fsource 'Child_Source'
+SELECT 
+row_number() over (order by path) 'Row#*',Level,(mm.indent+j.fbompart) '!Part | Part',i.frev 'REV',i.fdescript 'Description | Description'
+,CAST(j.factqty AS decimal(8,1)) 'Qty*',j.fjobno 'JO | JO',i.fsource 'Source'
+
 FROM jo_tree mm 
 LEFT JOIN jodbom j ON mm.fjobno = j.fjobno
-LEFT JOIN inmastx i ON i.fpartno = j.fbompart AND i.frev = j.fbomrev
-ORDER BY mm.fsub_from,mm.fjobno,j.fbompart
+LEFT JOIN inmast i ON i.fpartno = j.fbompart AND i.frev = j.fbomrev
+ORDER BY path
 OPTION (MAXRECURSION 7)</contents><comments>/*Provides a complete Job BOM for entered and children Jobs*/</comments><vars>@JO</vars></file><file><filename>BOM_Std</filename><contents>/*Complete Standard BOM for a given top level part number*/
 DECLARE @Part varchar(60) SET @Part = '' 
 WITH bom_std AS(
@@ -42,7 +46,7 @@ order by path
 OPTION (MAXRECURSION 7)</contents><comments>/*Complete Standard BOM for a given top level part number*/</comments><vars>@Part</vars></file><file><filename>Item Master</filename><contents>DECLARE @Part varchar(60) SET @Part = ''
 DECLARE @Description varchar(60) SET @Description = ''
 IF (LEN(@Part)&gt;0 OR LEN(@Description)&gt;0) BEGIN
-	SELECT fpartno '!Part',frev '!Rev',fdescript '!Desc.',fsource 'Source',CAST(CAST(fonhand AS decimal(8,1)) AS varchar(8)) 'Inventory'
+	SELECT fpartno '!Part | Part',frev '!Rev',fdescript '!Desc. | Description',fsource 'Source',CAST(CAST(fonhand AS decimal(8,1)) AS varchar(8)) 'Inventory'
 		,CAST(CAST(fonorder AS decimal(8,1)) AS varchar(8)) 'On Order',CAST(CAST(fbook AS decimal(8,1)) AS varchar(8)) 'Demand',CAST(CAST(fproqty AS decimal(8,1)) AS varchar(8)) 'WIP'
 		,CONVERT(VARCHAR(10),i.flastiss,120) 'Last_Issue',CONVERT(VARCHAR(10),i.flastrcpt,120) 'Last_Receipt'
 	FROM inmast i
@@ -78,7 +82,7 @@ WITH cte AS(
       where cast(b.fend_ef_dt AS datetime) = cast('1900-01-01 00:00:00.000' AS datetime) 
 )
 SELECT 
-row_number() over (order by path) 'Row#*',indent '!*Component',fcomprev Rev,fdescript Description, CAST(fqty AS decimal(8,1)) 'QtyReq*',fsource Source, Level 'Level*',CAST(fonhand AS int) 'Inventory*'
+row_number() over (order by path) 'Row#*',indent '!*Component | Part',fcomprev Rev,fdescript 'Description | Description', CAST(fqty AS decimal(8,1)) 'QtyReq*',fsource Source, Level 'Level*',CAST(fonhand AS int) 'Inventory*'
 ,CAST(fonorder AS int) 'OnOrder*',CAST(fproqty AS int) 'WIP*',CAST(fbook AS int) 'Demand*'
 ,CAST((fonhand+fonorder+fqtyinspec+fproqty-fbook-fnonnetqty) AS int) 'Available*',JO '*JO'
 ,STUFF((SELECT '&lt;br&gt;' + i.fpono +'-'+rtrim(ltrim(i.fitemno)) +' ('+cast(cast(i.fordqty as int) - cast(i.frcpqty as int) as varchar) +') [' + CONVERT(varchar(10),i.flstpdate,126) +']'  FROM poitem i 
@@ -88,7 +92,7 @@ OPTION (MAXRECURSION 7)</contents><comments>/*For a given part number, provides 
 DECLARE @JO varchar(15) SET @JO = ''
 DECLARE @OnlyOpen varchar(1) SET @OnlyOpen = '1'
 if (LEN(@Part)&gt;0 OR LEN(@JO)&gt;0) BEGIN
-	SELECT fpartno '!*Part',fjobno '!*JO',fpartrev 'Rev',fsono 'SO',fstatus 'Status',fcompany 'Company',fjob_name 'JO_Name',fsub_from '*JO_From'
+	SELECT fpartno '!*Part | Part',fjobno '!*JO | JO',fpartrev 'Rev',fsono 'SO',fstatus 'Status',fcompany 'Company',fjob_name 'JO_Name',fsub_from '*JO_From'
 		,CONVERT(VARCHAR(10),fddue_date,120) '*Due_Date',CONVERT(VARCHAR(10),fopen_dt,120) '*Open_Date'
 		,CONVERT(VARCHAR(10),fact_rel,120) '*Rel_Date'
 		,CASE WHEN flastlab = '1900-01-01' THEN '' ELSE CONVERT(VARCHAR(10),flastlab,120) END '*Last_Labor'
@@ -98,19 +102,13 @@ if (LEN(@Part)&gt;0 OR LEN(@JO)&gt;0) BEGIN
 		((m.fpartno LIKE CASE WHEN LEN(@Part)&gt;0 THEN '%'+@Part+'%' ELSE '%' END) AND
 		(m.fjobno LIKE CASE WHEN LEN(@JO)&gt;0 THEN '%'+@JO+'%' ELSE '%' END))
 	ORDER BY m.fpartno,m.fjobno
-END
-
-/*
-fdstart: 	start date
-frel_dt: 	calculated release date
-fstrt_date: some second start date (never figured this out
-*/</contents><vars>@Part</vars><vars>@JO</vars><vars>@OnlyOpen</vars><vars>@OnlyOpen</vars></file><file><filename>Order - Purchase</filename><contents>DECLARE @Part varchar(60) SET @Part = ''
+END</contents><vars>@Part</vars><vars>@JO</vars><vars>@OnlyOpen</vars><vars>@OnlyOpen</vars></file><file><filename>Order - Purchase</filename><contents>DECLARE @Part varchar(60) SET @Part = ''
 DECLARE @Company varchar(60) SET @Company = ''
 DECLARE @OnlyOpen varchar(1) SET @OnlyOpen= '1'
 if (LEN(@Part)&gt;0 OR LEN(@Company)&gt;0) BEGIN
 	SELECT row_number() over (order by m.fcompany,m.forddate,i.flstpdate) 'Row'
 	,m.fpono PO,m.fcompany '!Company',m.fvendno 'Vendor',CONVERT(VARCHAR(10),m.forddate,120) '*Order_Date',m.fconfirm 'Confirm',m.fstatus 'Status'
-	,ltrim(rtrim(i.fpartno)) '!Part',ltrim(rtrim(i.frev)) 'REV',ltrim(rtrim(convert(varchar(100),i.fdescript))) 'Description',i.fitemno 'Item_No'
+	,ltrim(rtrim(i.fpartno)) '!Part | Part',ltrim(rtrim(i.frev)) 'REV',ltrim(rtrim(convert(varchar(100),i.fdescript))) 'Description | Description',i.fitemno 'Item_No'
 	,CASE WHEN i.flstpdate = '1900-01-01' THEN '' ELSE CONVERT(VARCHAR(10),i.flstpdate,120) END '*LPD'
 	,CAST(i.fordqty AS decimal(8,1)) 'OrderQty'
 	FROM pomast m
@@ -122,11 +120,11 @@ if (LEN(@Part)&gt;0 OR LEN(@Company)&gt;0) BEGIN
 END</contents><vars>@Part</vars><vars>@Company</vars><vars>@OnlyOpen</vars><vars>@OnlyOpen</vars></file><file><filename>Order - Sales</filename><contents>DECLARE @Part varchar(60) SET @Part = ''
 DECLARE @Company varchar(60) SET @Company = ''
 DECLARE @Description varchar(60) SET @Description = ''
-DECLARE @OnlyOpen varchar(1) SET @OnlyOpen = '1'
+DECLARE @OnlyOpen varchar(1) SET @OnlyOpen = '0'
 IF (LEN(@Company)&gt;0 OR LEN(@Part)&gt;0 OR (LEN(@Company)&gt;0 AND LEN(@Part)&gt;0) OR (LEN(@Company)&gt;0 AND LEN(@Description)&gt;0)) BEGIN
-	SELECT row_number() over (order by o.fstatus,m.fduedate,i.fsono,i.finumber) 'Row#',m.fsono SO,m.fcompany Customer
+	SELECT row_number() over (order by o.fstatus,m.fduedate,i.fsono,i.finumber) 'Row#',m.fsono 'SO | SO',m.fcompany Customer
 	,replace(convert(varchar(10), m.fduedate, 111),'/','-')  DueDate
-	,i.finumber 'Line',i.fpartno 'Part',inv.fdescript 'Description',i.fpartrev Rev,o.fstatus Status
+	,i.finumber 'Line',i.fpartno 'Part | Part',inv.fdescript 'Description | Description',i.fpartrev Rev,o.fstatus Status
 	FROM somast m
 	LEFT JOIN soitem i ON m.fsono=i.fsono
 	LEFT JOIN sochng o ON m.fsono=o.fsono
@@ -167,7 +165,7 @@ DECLARE @JO varchar(60)
 IF (LEN(@SN)&gt;0 AND LEN(@Part)&gt;0) BEGIN
 	SET @JO = (SELECT b.fjobno 
 		FROM jodbom b
-		WHERE b.fstdmemo LIKE 'S/N '+@SN+'%' AND b.fbompart LIKE @Part)
+		WHERE (b.fstdmemo LIKE 'S/N '+@SN+'%' OR b.fstdmemo LIKE '[[]SN '+@SN+']') AND b.fbompart LIKE @Part)
 	SELECT jm.fpartno 'Parent',jm.fpartrev 'Parent REV','-' 'Part','-' 'REV',im.fdescript 'Description',d.fdescmemo 'Memo','-' 'Matl. Cost'
 		,'-' 'Qty',d.fjobno 'Job No'
 		,CONVERT(VARCHAR(10),jm.fact_rel,120) 'Release Date'
@@ -187,7 +185,7 @@ IF (LEN(@SN)&gt;0 AND LEN(@Part)&gt;0) BEGIN
 		,'-' 'Status'
 		FROM jodbom i
 		LEFT JOIN jomast m ON i.fjobno=m.fjobno
-		WHERE i.fstdmemo LIKE 'S/N%' AND i.fjobno LIKE @jo
+		WHERE (i.fstdmemo LIKE 'S/N%' OR i.fstdmemo LIKE '[[]SN%]') AND i.fjobno LIKE @jo
 END</contents><vars>@Part</vars><vars>@SN</vars><vars>@JO</vars></file><file><filename>SN_BOM by Parent SN</filename><contents>DECLARE @Part varchar(60) SET @Part = ''
 DECLARE @SN varchar(60) SET @SN = ''
 DECLARE @JO varchar(60)
@@ -195,7 +193,7 @@ IF (LEN(@SN)&gt;0 AND LEN(@Part)&gt;0) BEGIN
 	SET @JO = (SELECT m.fjobno 
 		FROM joitemdesc id
 		LEFT JOIN jomast m ON id.fjobno = m.fjobno
-		WHERE id.fdescmemo LIKE 'S/N '+@SN+'%' AND m.fpartno LIKE @Part)
+		WHERE (id.fdescmemo LIKE 'S/N '+@SN+'%' OR id.fdescmemo LIKE '[[]SN '+@SN+']') AND m.fpartno LIKE @Part)
 	SELECT jm.fpartno 'Parent',jm.fpartrev 'Parent REV','-' 'Part','-' 'REV',im.fdescript 'Description',d.fdescmemo 'Memo','-' 'Matl. Cost'
 		,'-' 'Qty',d.fjobno 'Job No'
 		,CONVERT(VARCHAR(10),jm.fact_rel,120) 'Release Date'
@@ -215,7 +213,7 @@ IF (LEN(@SN)&gt;0 AND LEN(@Part)&gt;0) BEGIN
 		,'-' 'Status'
 		FROM jodbom i
 		LEFT JOIN jomast m ON i.fjobno=m.fjobno
-		WHERE i.fstdmemo LIKE 'S/N%' AND i.fjobno LIKE @jo
+		WHERE (i.fstdmemo LIKE 'S/N%' OR i.fstdmemo LIKE '[[]SN%]') AND i.fjobno LIKE @jo
 END</contents><vars>@Part</vars><vars>@SN</vars><vars>@JO</vars></file><file><filename>SN_Job Number</filename><contents>DECLARE @JO varchar(60) SET @JO = ''
 IF (LEN(@JO)&gt;0) BEGIN
 	SELECT jm.fpartno 'Parent',jm.fpartrev 'Parent REV','-' 'Part','-' 'REV',im.fdescript 'Description',d.fdescmemo 'Memo','-' 'Matl. Cost'
@@ -237,7 +235,7 @@ IF (LEN(@JO)&gt;0) BEGIN
 		,'-' 'Status'
 		FROM jodbom i
 		LEFT JOIN jomast m ON i.fjobno=m.fjobno
-		WHERE i.fstdmemo LIKE 'S/N%' AND i.fjobno LIKE @jo
+		WHERE (i.fstdmemo LIKE 'S/N%' OR i.fstdmemo LIKE '[[]SN%]') AND i.fjobno LIKE @jo
 END</contents><vars>@JO</vars></file><file><filename>SN_Parent SN Lookup</filename><contents>DECLARE @Part varchar(60) SET @Part = ''
 DECLARE @JO varchar(60)
 IF (LEN(@Part)&gt;0) BEGIN
@@ -246,7 +244,7 @@ IF (LEN(@Part)&gt;0) BEGIN
 		,CONVERT(VARCHAR(10),m.ftrave_dt,120) 'Last Move Date'
 		FROM joitemdesc id
 		LEFT JOIN jomast m ON id.fjobno = m.fjobno
-		WHERE id.fdescmemo LIKE 'S/N %' AND m.fpartno LIKE @Part
+		WHERE (id.fdescmemo LIKE 'S/N %' OR id.fdescmemo LIKE '[[]SN%]') AND m.fpartno LIKE @Part
 		ORDER BY cast(id.fdescmemo as varchar(1000))
 END</contents><vars>@Part</vars></file><file><filename>Where Used_JO</filename><contents>/*Looks up every JO given a part was used in based on actual usage*/
 DECLARE @Part varchar(60) SET @Part = ''
@@ -266,7 +264,7 @@ WITH cte AS(
 		JOIN inmastx m ON m.fpartno=b.fparent AND m.frev=b.fparentrev
 		INNER JOIN cte AS c ON c.fparent = b.fbompart AND c.fparentrev = b.fbomrev
 )
-SELECT row_number() over (order by path) 'Row#',fjobno 'JO',indent '!Component',fdescript Description,fparentrev Rev, Level
+SELECT row_number() over (order by path) 'Row#',fjobno 'JO | JO',indent '!Component | Part',fdescript Description,fparentrev Rev, Level
 FROM cte 
 WHERE identity_column IN (SELECT MIN(identity_column) FROM cte GROUP BY identity_column)
 GROUP BY identity_column,fjobno,indent,fdescript,fparentrev,Level,path
@@ -286,7 +284,7 @@ WITH cte AS(
       JOIN inmastx m ON m.fpartno=b.fparent AND m.frev=b.fparentrev
       INNER JOIN cte AS c ON c.fparent = b.fcomponent AND c.fparentrev = b.fcomprev
 )
-SELECT DISTINCT row_number() over (order by path) 'Row#',indent '!Parent',fdescript Description,fparentrev Rev, Level
+SELECT DISTINCT row_number() over (order by path) 'Row#',indent '!Parent | Part',fdescript Description,fparentrev Rev, Level
 FROM cte
 WHERE identity_column IN (SELECT MIN(identity_column) FROM cte GROUP BY identity_column)
 GROUP BY identity_column,indent,fdescript,fparentrev,Level,path

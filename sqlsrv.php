@@ -96,6 +96,9 @@
 					echo "<div class='mobile foofilter'>";
 						echo "<span>Filter: </span><input id='filter' type='text' title='Press Ctrl+Shift+? for help'/><span id='filtered-number'></span>";
 					echo "</div>";
+					echo "<div id='togrow' class='mh'>";
+						echo "<span id='togrow-num'></span><input type='button' value='Toggle Highlights' onclick='return toggleRow();' title='Click to only show highlighted; Ctrl+Click to hide highlighted'>";
+					echo "</div>";
 				echo "</div>";
 			echo "</div>";
 			echo "<div id='content-main'></div>";			

@@ -24,8 +24,27 @@ $(document).ready(function(){
 	$(document).on('keypress','.var',function(e){
 		if (e.keyCode==13) run();
 	});
-	$(document).on('click','tbody tr',function(){
-		$(this).toggleClass('highlight');
+	$(document).on('click','tbody tr',function(e){
+		var li = $('.lh').removeClass('lh').index();
+		var ti = $(this).addClass('lh').index();
+		if (e.shiftKey){
+			//cheating way of removing the highlighted text (still has a flash of highlight)
+			$('#filter').focus().blur();
+			if (li<ti){
+				for (var i=ti;i>li;i--){
+					$('#tblData tbody tr:eq('+i+')').toggleClass('highlight');
+				}
+			}else if(li>ti){
+				for (var i=ti;i<li;i++){
+					$('#tblData tbody tr:eq('+i+')').toggleClass('highlight');
+				}
+			}else if(li==-1){
+				$(this).toggleClass('highlight');
+			}
+		}else{
+			$(this).toggleClass('highlight');
+		}
+		$('#togrow-num').html(($('.highlight').length>0?$('.highlight').length:''));
 	});
 	
 	//Loads page if passed in with URL
@@ -108,7 +127,7 @@ $(document).ready(function(){
 					var that = this;
 					$(this).find('vars').each(function(){
 						if ($(this).text() == '@'+_var){
-							$('#cm').append('<div class="cm-file" data-tag="sql">'+$(that).find('filename').text()+'</div>');
+							$('#cm').append('<div class="cm-file" title="Ctrl+Click to open in new tab" data-tag="sql">'+$(that).find('filename').text()+'</div>');
 						}
 					});
 				});
@@ -126,8 +145,31 @@ $(document).ready(function(){
 		$('#cm').remove();
 	});
 	
+	$(document).on('contextmenu','#tblData thead th,.fht-table thead th',function(e){
+		console.log('in here')
+		if ($(this).hasClass('collapse')){
+			$(this).removeClass('collapse');
+			$('#tblData tbody tr.h').removeClass('h');
+		}else{
+			$(this).addClass('collapse');
+			var seen = [],dex = $(this).index();
+			$('#tblData tbody tr').each(function(){
+				var t = $(this).find('td:eq('+dex+')').text();
+				
+				if (seen[t]){
+					$(this).addClass('h');
+				}else{
+					seen[t] = true;
+				}
+			});
+		}
+		e.preventDefault();
+		return false;
+		
+	});
 	
-	$(document).on('click','.cm-file',function(){
+	
+	$(document).on('click','.cm-file',function(e){
 		switch($(this).attr('data-tag')){
 			case 'copy':
 				break;
@@ -140,8 +182,12 @@ $(document).ready(function(){
 					ary.push('sql='+(get('sql')!==undefined?get('sql'):'false'));
 					
 					var url = u[0] + '?' + ary.join('&');
-					localStorage.set
-					window.location.replace(url);
+					//localStorage.set
+					if (e.ctrlKey){
+						window.open(url,'_blank');
+					}else{
+						window.location.replace(url);
+					}
 					return false
 				}
 				break;
@@ -165,6 +211,8 @@ $(document).ready(function(){
 	})
 });
 
+
+
 function prepCopy(text){
 	$('#cm-copy').attr('data-clipboard-text',text);
 	var client = new ZeroClipboard($('#cm-copy')[0]);
@@ -187,14 +235,6 @@ function getHighlight(that){
 	return $.trim(text);
 }
 
-function isTextSelected(input) {
-    if (typeof input.selectionStart == "number") {
-        return input.selectionStart == 0 && input.selectionEnd == input.value.length;
-    } else if (typeof document.selection != "undefined") {
-        input.focus();
-        return document.selection.createRange().text == input.value;
-    }
-}
 function cclicker(){
 	if ($('#cclicker-text').length>0) $('#cclicker-text').remove();
 	if ($('#cm').length>0) $('#cm').remove();
@@ -202,7 +242,10 @@ function cclicker(){
 	$('#cclicker').remove();
 }
 
-
+function toggleRow(){
+	if (event.ctrlKey) $('#tblData tbody tr.highlight').toggle();
+	if (!event.ctrlKey)  $('#tblData tbody tr:not(.highlight').toggle();
+}
 
 function initRun(){
 	$.ajax({
@@ -372,6 +415,7 @@ function run(){
 			$('#tblData').footable();
 			$('#filtered-number').html($('#tblData tbody tr:not(.footable-row-detail)').length + ' of ' + $('#tblData tbody tr:not(.footable-row-detail)').length);
 		}
+		
 		
 		$('#tblData td[data-find="true"]').closest('tr').addClass('highlight');
 		if (!$('#tblData').hasClass('phone')){

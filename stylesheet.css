@@ -22,7 +22,7 @@ body{word-wrap:break-word !IMPORTANT}
 #click{position:absolute;width:100%;height:100%;left:0;top:0;background:gray;opacity:0.4;filter:alpha(opacity=40);}
 .var{width:100px}
 
-
+#togrow{position:absolute;right:10px;top:0}
 
 .rhn{position:absolute;right:10px;}
 
@@ -31,7 +31,7 @@ body{word-wrap:break-word !IMPORTANT}
 .highlight{background:#fff71c !important}
 #export,#init-hide{display:none}
 
-#init-hide{padding-bottom:5px}
+#init-hide{padding-bottom:5px;position:relative}
 .vcon{padding-right:10px;height:30px !important}
 #export,.mobile,.vcon,.foofilter{display:inline}
 .mobile{position:relative;width:100%}
@@ -57,6 +57,7 @@ body{word-wrap:break-word !IMPORTANT}
 #cclicker-text table{color:white;font-size:1.2em;width:100%;min-width:650px;}
 #cclicker-text table tr td{text-align:justify;text-justify:inter-word;vertical-align:text-top;padding-bottom:20px}
 #filtered-number{padding-left:10px}
+.collapse:before{content:'*'}
 
 @media only screen and (min-device-width : 481px){
 	body,html{overflow-y:hidden;}
@@ -87,13 +88,12 @@ http://css-tricks.com/examples/ShapesOfCSS/
 */
 th{position:relative}
 .mg-container{position:absolute;right:3px;top:-2px;}
-.mg
-{
+.mg{
  font-size: 1.2em; /* This controls the size. */
  display: inline-block;
  width: 0.4em;
  height: 0.4em;
- border: 0.1em solid black;
+ /*border: 0.1em solid black;*/
  position: relative;
  border-radius: 0.35em;
  margin-right:5px;
@@ -106,7 +106,7 @@ th{position:relative}
  right: -0.25em;
  bottom: -0.1em;
  border-width: 0;
- background: black;
+/* background: black;*/
  width: 0.35em;
  height: 0.08em;
  -webkit-transform: rotate(45deg);
@@ -114,3 +114,8 @@ th{position:relative}
      -ms-transform: rotate(45deg);
       -o-transform: rotate(45deg);
 }
+
+.mg:not(.white){border:0.1em solid black}
+.mg:not(.white)::before{background:black}
+.mg.white{border:0.1em solid white}
+.mg.white::before{background:white}

@@ -1,11 +1,11 @@
 DECLARE @Part varchar(60) SET @Part = ''
 DECLARE @Company varchar(60) SET @Company = ''
 DECLARE @Description varchar(60) SET @Description = ''
-DECLARE @OnlyOpen varchar(1) SET @OnlyOpen = '1'
+DECLARE @OnlyOpen varchar(1) SET @OnlyOpen = '0'
 IF (LEN(@Company)>0 OR LEN(@Part)>0 OR (LEN(@Company)>0 AND LEN(@Part)>0) OR (LEN(@Company)>0 AND LEN(@Description)>0)) BEGIN
-	SELECT row_number() over (order by o.fstatus,m.fduedate,i.fsono,i.finumber) 'Row#',m.fsono SO,m.fcompany Customer
+	SELECT row_number() over (order by o.fstatus,m.fduedate,i.fsono,i.finumber) 'Row#',m.fsono 'SO | SO',m.fcompany Customer
 	,replace(convert(varchar(10), m.fduedate, 111),'/','-')  DueDate
-	,i.finumber 'Line',i.fpartno 'Part',inv.fdescript 'Description',i.fpartrev Rev,o.fstatus Status
+	,i.finumber 'Line',i.fpartno 'Part | Part',inv.fdescript 'Description | Description',i.fpartrev Rev,o.fstatus Status
 	FROM somast m
 	LEFT JOIN soitem i ON m.fsono=i.fsono
 	LEFT JOIN sochng o ON m.fsono=o.fsono
