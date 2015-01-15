@@ -2,13 +2,18 @@
 /*#navspan{margin-top:-10px}*/
 #navspan{z-index:10000;position:static !important;}
 
-
 body, html {
   height: 100%;
   font-family: 'trebuchet MS','Lucida sans',Arial;
 }
 
-body{word-wrap:break-word !IMPORTANT}
+body{
+	word-wrap:break-word !IMPORTANT;
+	top:0px;left:0px;
+	padding:8px;
+	margin:0;
+	
+}
 
 #sqltext{width:98%;height:150px}
 #editor { 
@@ -19,6 +24,7 @@ body{word-wrap:break-word !IMPORTANT}
 	left: 0;
 }
 #login{display:none;position:absolute;width:200px;left:calc(50% - 100px);left:45%;top:20%;z-index:10;background:white;padding:10px;border:1px solid black}
+#login input[type="button"]{margin-top:4px}
 #click{position:absolute;width:100%;height:100%;left:0;top:0;background:gray;opacity:0.4;filter:alpha(opacity=40);}
 .var{width:100px}
 
@@ -43,14 +49,18 @@ body{word-wrap:break-word !IMPORTANT}
 #cm{position:absolute;min-width:150px;max-height:250px;overflow-x:hidden;white-space:nowrap;overflow-y:visible;z-index:200105;background:#FFFFFF;box-shadow: 3px 3px 2px #8A8A8A;border:1px solid #BABABA;font-family: 'trebuchet MS','Lucida sans',Arial;font-size:0.9em}
 #hr-resize:hover{cursor:n-resize}
 .cm-file:not(.hrcm),#cm-copy{padding:2px 5px}
+
 .hrcm { display: block; height: 1px;border: 0; border-top: 1px solid #E9E9E9;margin: 1em 0; padding: 0; font-size:0.2em}
 
-.cm-file:hover{background:#4281F4 !important;color:#fff !important}
-/*
-#global-zeroclipboard-html-bridge:hover::before{content:'Copy';color:#fff;padding:2px 5px;cursor: pointer;cursor: hand;font-size:0.9em}
-#global-zeroclipboard-html-bridge.hidden:hover::before{content:'';height:0;width:0}
-*/
+.cm-file:hover,#cm-copy:hover{background:#4281F4 !important;color:#fff !important}
+
+/*#global-zeroclipboard-html-bridge::before{content:'Copy';padding:2px 5px;font-size:0.9em}*/
+/*#global-zeroclipboard-html-bridge::before{color:#000;content:'Copy';padding:2px 5px;font-size:0.9em}
+#global-zeroclipboard-html-bridge:hover{background:#4281F4;color:#fff;padding:2px 5px;cursor: pointer;cursor: hand;font-size:0.9em}
+/*#global-zeroclipboard-html-bridge.hidden:hover::before{content:'';height:0;width:0}*/
+
 .h{display:none}
+.trh{display:none !important}
 #cclicker-text{z-index:200101;color:white;width:70%;height:80%;overflow-y:auto;}
 .hover:hover{cursor: pointer !important; cursor: hand !important}
 .no-text{-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none}
@@ -119,3 +129,21 @@ th{position:relative}
 .mg:not(.white)::before{background:black}
 .mg.white{border:0.1em solid white}
 .mg.white::before{background:white}
+
+
+
+.ml{margin-left:3px}
+#vars{margin-top:3px}
+
+.btr{border-top-right-radius:2px}
+.btl{border-top-left-radius:2px}
+.bbr{border-bottom-right-radius:2px}
+.bbl{border-bottom-left-radius:2px}
+
+
+.blue{background:#4484F1;border:1px solid #4387FD;color:#fff;box-shadow: none;outline: 0;padding:2px 8px}
+.gray{background:#F5F5F5;border:1px solid #D8D8D8;color:#444444;box-shadow: none;outline: 0;padding:2px 8px}
+.blue:hover{box-shadow: 0px 1px 1px #D8D8D8;}
+.blue:active{box-shadow:inset  0 8px 8px -8px #3267C0;}
+.gray:hover{box-shadow: 0px 1px 1px #EAEAEA;}
+.gray:active{box-shadow:inset  0 8px 8px -8px #EAEAEA;}

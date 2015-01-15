@@ -10,10 +10,11 @@
 	
 	switch($type){
 		case 'mssql':
+			$myr = _mssql($sql);
 			echo _mssql($sql);
 			break;
 		case 'mysql':
-			echo _mysql($sql);
+			echo buildSQL($result[0],$result[1]);
 			break;
 	}
 	
@@ -25,6 +26,10 @@
 		$t = valid($tsql,$type);
 		$tsql = explode(';',$t);
 		$result = sqlsrv_query($conn,$tsql[0],null,array('Scrollable'=>SQLSRV_CURSOR_FORWARD));
+		
+		
+		//return array($result,$tsql[0]);
+		
 		
 		return buildSQL($result,$tsql[0]);
 	}
@@ -42,7 +47,13 @@
 			$_sql = $sql[0];
 		}
 		$result = $mysqli->query($_sql);
+		
+		
 		return buildSQL($result,$_sql);
+		/*
+		$r = array($result,$_sql);
+		return $r;
+		*/
 	}
 	
 	
@@ -110,9 +121,12 @@
 			$str .= "</thead><tbody class='fixed-scroll'>";
 			switch($type){
 				case 'mssql':
+					//echo "<pre>";print_r($result);echo "</pre>";
+					
 					while ($row = sqlsrv_fetch_array($result,SQLSRV_FETCH_ASSOC )){
 						$str .= sqlTable($row);
 					}
+					
 					break;
 				case 'mysql':
 					

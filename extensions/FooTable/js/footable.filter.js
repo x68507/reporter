@@ -180,7 +180,9 @@
 					ft.raise('footable_filtered', { filter: event.filter, clear: false });
 					
 					var num = $table.find('tbody tr:not(.footable-row-detail)').filter(function() {return $(this).css('display') !== 'none';}).length;
+					//mrh
 					$('#filtered-number').html(num + ' of ' + $table.find('tbody tr:not(.footable-row-detail)').length);
+					$('#togrow-num').html(($('.highlight').length>0?($('.highlight:visible').length+' of '+$('#tblData tbody tr:not(.footable-row-detail)').length):''));
 				});
             }
 			
@@ -202,12 +204,15 @@
         p.clearFilter = function () {
             var ft = p.footable,$table = $(ft.table);
 			var total = $('tbody tr:not(.footable-row-detail)',ft.table).length;
-            $('#filtered-number').html(total + ' of ' + total);
+			
 			$table.find('> tbody > tr:not(.footable-row-detail)').removeClass('footable-filtered').each(function () {
                 p.showRow(this, ft);
             });
             $table.removeData('filter-string current-column');
             ft.raise('footable_filtered', { clear: true });
+			//mrh
+            $('#filtered-number').html(total + ' of ' + total);
+			$('#togrow-num').html(($('.highlight').length>0?($('.highlight:visible').length+' of '+$('#tblData tbody tr:not(.footable-row-detail)').length):''));
 			
         };
 
