@@ -52,17 +52,12 @@ body{
 
 .hrcm { display: block; height: 1px;border: 0; border-top: 1px solid #E9E9E9;margin: 1em 0; padding: 0; font-size:0.2em}
 
-.cm-file:hover,#cm-copy:hover{background:#4281F4 !important;color:#fff !important}
-
-/*#global-zeroclipboard-html-bridge::before{content:'Copy';padding:2px 5px;font-size:0.9em}*/
-/*#global-zeroclipboard-html-bridge::before{color:#000;content:'Copy';padding:2px 5px;font-size:0.9em}
-#global-zeroclipboard-html-bridge:hover{background:#4281F4;color:#fff;padding:2px 5px;cursor: pointer;cursor: hand;font-size:0.9em}
-/*#global-zeroclipboard-html-bridge.hidden:hover::before{content:'';height:0;width:0}*/
+.cm-file:hover,#cm-copy:hover,.zeroclipboard-is-hover{background:#4281F4 !important;color:#fff !important}
 
 .h{display:none}
 .trh{display:none !important}
 #cclicker-text{z-index:200101;color:white;width:70%;height:80%;overflow-y:auto;}
-.hover:hover{cursor: pointer !important; cursor: hand !important}
+.hover:hover,.zeroclipboard-is-hover{cursor: pointer !important; cursor: hand !important}
 .no-text{-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none}
 #cclicker-text table{color:white;font-size:1.2em;width:100%;min-width:650px;}
 #cclicker-text table tr td{text-align:justify;text-justify:inter-word;vertical-align:text-top;padding-bottom:20px}

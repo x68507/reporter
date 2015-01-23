@@ -1,5 +1,5 @@
 <?php	
-	if (strtolower(substr(php_sapi_name(),0,3))!='cli'){
+	if (strtolower(substr(php_sapi_name(),0,3))=='cli'){
 		$nl = "<br>";
 		$tab = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>";
 		$whitelist = array('127.0.0.1','::1');
@@ -12,9 +12,12 @@
 		$tab = "\n -> ";
 	}
 	$path = "../SQL";
-	$newFile = "../xml_tree.xml";
-	
+
+	$newFile = '../xml_tree.xml';
+
 	if ($handle = opendir($path)) {
+		
+		if (file_exists($newFile)) unlink($newFile);
 		
 		$xml = "<?xml version='1.0' encoding='utf-8'?>\n";
 		$xml .= "<xml>";
@@ -40,8 +43,22 @@
 			}
 			unset($file);
 			closedir($handle);
+			
 		$xml .= "</xml>";
+		
+		file_put_contents($newFile,$xml);
+		
+		$doc = new DOMDocument();
+		$doc->preserveWhiteSpace = false;
+		$doc->formatOutput = true;
+		$xml = simplexml_load_file($newFile)->asXML();
+		$doc->loadXML($xml);
+		$doc->save($newFile);
+
+		
 	}
-	file_put_contents($newFile,$xml);
-	echo 'Successfully wrote XML file...<hr>';
+	echo 'Successfully wrote XML file...';
+	
+	
+	
 ?>

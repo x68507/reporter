@@ -429,7 +429,11 @@ function sqlSave(){
 
 	}
 	$.post('php_scripts/action.php',{'action':'save','title':title,'sql':sql},function(data){
-		
+		$.post('php_scripts/build_xml.php',{},function(data){
+			if (!ie8){
+				console.log(data);
+			}
+		},'html');
 	},'xml');
 }
 
@@ -709,3 +713,4 @@ function setCookie(c,v,d){var exdate=new Date();exdate.setDate(exdate.getDate() 
 function getCookie(c){var cv = document.cookie;var cs = cv.indexOf(" " + c + "=");if (cs == -1){cs = cv.indexOf(c + "=");}if (cs == -1){cv = null;}else{cs = cv.indexOf("=", cs) + 1;var ce = cv.indexOf(";", cs);if (ce == -1){ce = cv.length;}cv = unescape(cv.substring(cs,ce));}if(cv !== null){cv=cv.toString().replace(/\%2B/g,'+')};return cv;}
 function delCookie(n){document.cookie = n + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';}
 $.fn.center = function () {this.css("position","absolute");this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight()) / 2) + $(window).scrollTop()) + "px");this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) + $(window).scrollLeft()) + "px");return this;}
+function ie8(){var elem = document.createElement('canvas');return !(elem.getContext && elem.getContext('2d'));}
