@@ -219,8 +219,6 @@
 				unset($style,$find);
 			}
 		$str .= "</tr>";
-		return $str;
-		
-		return 'in here';
+		return $str;	
 	}
 ?>
