@@ -31,4 +31,29 @@ This package was originally designed for T-SQL queries on a Windows Server 2008 
 
 Query Syntax
 ========
+####Basic Queries & Variables
+Reporter is designed to execture single, standalone queries against one database.  There are several example queries that sucessfully run on a Microsoft database using T-SQL.  Although you can write a simple select query such as 
 
+    SELECT TOP 10 * FROM tbl_table WHERE column="value"
+
+the usefulness of Reporter comes into play when you start linking tables together.  First, you can create user-defined variables by using `DECLARE` statements like:
+
+    DECLARE @var varchar(60) SET @var = ''
+    DECLARE @cb varchar(1) SET @cb = '1'
+
+This will create two variables when the query is first selected, prompting the user for a value before actually executing the query.  Notice that the first `varchar` has a length of `60` while the second `varchar` has a length of `1`.  Any `varchar` greater than 1 will create a textbox input while a `varchar` equal to length `1` will create a checkbox.  Using `varchar(1)`, a checkbox with a default value of `''` or `'0'` will be *unchecked* while a default value of `'1'` will be *checked*.
+
+####Linking Tables
+You can link specific columns from one table so they can be used in a drill-down for another table that has a variable input simply by naming your column with a question mark (**!**).
+
+**Query 1**
+    
+    DECLARE @part varchar(60) SET @var = ''
+    SELECT TOP 10 '!part | PartNo',Description FROM tbl_parts WHERE colPart = '@part'
+    
+**QUERY 2**
+    
+    DECLARE @part varchat(60) SET @var = ''
+    SELECT TOP 10 '!part | PartNo',OrderNo FROM tbl_orders WHERE colPart = '@part'
+
+First, by using a piping symbol **|**, you can control the actual title of the column regardless of the variable being linked to (before the pipe is the variable name and after the pipe is the column name).  Next, by using the **!**, a magnifying glass appears in the column named *PartNo* and all queries that have **@part** as a variable will appear in a right-click contextmenu.  When a user right clicks and selects the query, it will automatically run that query with the selected variable.
