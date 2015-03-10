@@ -333,7 +333,7 @@ function csvExport(){
 	});
 	
 	var csv = $('#tblData').table2CSV({delivery:'value'});
-	var title = get('id') + ($('.var:eq(0)').val().length>0?' ('+ $('.var:eq(0)').val() +').csv':'.csv');
+	var title = decodeURIComponent(get('id')) + ($('.var:eq(0)').val().length>0?' ('+ $('.var:eq(0)').val() +').csv':'.csv');
 	download(csv,title,'text/csv');
 }
 function download(strData, strFileName, strMimeType) {
@@ -417,9 +417,10 @@ function sqlSave(){
 	var sql = editor.getValue();
 	
 	//strips out testing values for the variables
+	/*mrh: need to add more options other than varchar
 	switch(_type){
 		case 'mssql':
-			var rCB = /(@[A-z]*)\s+[A-z]*\([0-9]+\)[^']*[A-z0-9-']*/g;
+			var rCB = /(@[A-z]*)\s+[A-z]*\([0-9]+\)[^']*[A-z0-9-']+/g;
 			var aCB  = sql.match(rCB).filter(function(dex){return dex.toLowerCase().indexOf('varchar(1)')==-1;});
 			$.each(aCB,function(dex,val){
 				sql = sql.replace(val,val.split("'")[0]+" ''");
@@ -428,6 +429,7 @@ function sqlSave(){
 			break;
 
 	}
+	*/
 	$.post('php_scripts/action.php',{'action':'save','title':title,'sql':sql},function(data){
 		$.post('php_scripts/build_xml.php',{},function(data){
 			if (!ie8){
@@ -493,7 +495,7 @@ function run(){
 	
 	
 	$.post('php_scripts/sql.php',{'type':type,'sql':sql},function(data){
-		
+		console.log(data)
 		$('#content-main').html('');
 		
 		var h = $(window).height()-$('#top').height()-20;
@@ -578,7 +580,7 @@ function vars(){
 	var _get = ['id','sql','_ftf'];
 	
 	$('#vars').html('');
-	
+	//console.log(aVar)
 	if (aVar!==null){
 		$.each(aVar,function(dex,val){
 			_var = decodeURIComponent($.trim(val.split('@')[1]));
@@ -591,6 +593,16 @@ function vars(){
 			}
 			switch(_type){
 				case 'mssql':
+					
+					if (aCB!==null && aCB[dex].replace(/\s+/g,' ').split(' ')[1]=='varchar(1)'){
+					
+						$('#vars').append('<span class="vcon">'+_var+': <input id="v_'+_var+'" class="var" type="checkbox" '+(_arg=='1'?'checked="checked"':'')+'></span>');
+					}else{
+						$('#vars').append('<span class="vcon">'+_var+': <input id="v_'+_var+'" class="var" type="text" value="'+_arg+'"></span>');
+					}
+					
+					
+					/*
 					switch(aCB[dex].replace(/\s+/g,' ').split(' ')[1]){
 						case 'varchar(1)':
 							$('#vars').append('<span class="vcon">'+_var+': <input id="v_'+_var+'" class="var" type="checkbox" '+(_arg=='1'?'checked="checked"':'')+'></span>');
@@ -599,6 +611,7 @@ function vars(){
 							$('#vars').append('<span class="vcon">'+_var+': <input id="v_'+_var+'" class="var" type="text" value="'+_arg+'"></span>');
 							break;
 					}
+					*/
 					break;
 				case 'mysql':
 					$('#vars').append('<div class="vcon"><span>'+_var+': </span><input id="v_'+_var+'" class="var" type="text" value="'+_arg+'"></div>');

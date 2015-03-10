@@ -70,7 +70,7 @@
 		//regex to find the "searched for" character
 			//super lazy and doesn't work for nested quotes, but works for what I need right now
 		
-		$patt = "/\S*\s*LIKE\s*(\s*|'(?:[^']*)'\+)@[A-z0-9]*/i";
+		$patt = "/\S*\s*LIKE\s*(\s*|'(?:[^']*)'\+)@[A-z0-9]+/i";
 		preg_match_all($patt,$tsql,$m1);
 		$col = array();
 		if (count($m1[0])>0){
@@ -150,6 +150,7 @@
 			if ($bError==true) $str .= "<hr>".$tsql;
 			
 		}
+		
 		return $str;
 	}
 	

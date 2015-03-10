@@ -41,8 +41,8 @@
 		<div id='login'>Password: <input id='password' type='password' autocomplete='off'><input type='button' class='hover blue btr btl bbr bbl' Value='Submit' onclick='lsub()'><input type='button' class='ml hover gray btr btl bbr bbl' Value='Cancel' onclick='$("#click").click()'></div>
 		<?php
 			
-			$ping = 'pong';
-			include_once('../config.php');
+			//$ping = 'pong';
+			//include_once('../config.php');
 		
 			echo "<div id='top'>";
 				echo "<div class='mh'>";
