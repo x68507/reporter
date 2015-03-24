@@ -69,14 +69,16 @@
 						echo "<input type='button' id='sqlnew' class='hover gray btr btl bbr bbl h sqlt' Value='New' onclick='sqlNew()'>";
 						echo "<input type='button' id='sqlsave' class='hover gray btr btl bbr bbl h sqlt ml' Value='Save' onclick='sqlSave()'>";
 					echo "</span>";
-					echo "<hr id='hr-resize' class='mh'>";
+					echo "<div id='hr-resize' class='hr mh'></div>";
 				echo "</div>";
 			echo "</div>";
 			echo "<div style='position:relative;width:100%;'>";
 				echo "<span class='mh rhn'>";
 					echo "<input type='button' id='sqltoggle' class='hover gray btr btl bbr bbl' $temp Value='SQL Toggle'>";
 					echo "<input id='ll' class='hover gray btr btl bbr bbl ml' type='button' Value='".$str."' onclick='login()' >";
-					include('../nav.php');
+					if (file_exists('../nav.php')){
+						include('../nav.php');
+					}
 				echo "</span>";
 				
 				echo "<div class='mobile'>";
@@ -96,7 +98,7 @@
 					echo "</select><input id='b-clear' type='button' Value='Clear' class='ml mh hover gray btr btl bbr bbl'></div>";
 					echo "<div id='vars'></div>";
 					echo "<div id='comments'></div>";
-					echo "<hr>";
+					echo "<div class='hr'></div>";
 				echo "</div>";
 				echo "<div id='init-hide'>";
 					echo "<div id='export' class='mh'>";

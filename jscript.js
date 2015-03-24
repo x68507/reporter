@@ -417,26 +417,27 @@ function sqlSave(){
 	var sql = editor.getValue();
 	
 	//strips out testing values for the variables
-	/*mrh: need to add more options other than varchar
+	//mrh: need to add more options other than varchar
 	switch(_type){
 		case 'mssql':
 			var rCB = /(@[A-z]*)\s+[A-z]*\([0-9]+\)[^']*[A-z0-9-']+/g;
 			var aCB  = sql.match(rCB).filter(function(dex){return dex.toLowerCase().indexOf('varchar(1)')==-1;});
 			$.each(aCB,function(dex,val){
-				sql = sql.replace(val,val.split("'")[0]+" ''");
+				sql = sql.replace(val,val.split("'")[0]+"''");
 			});
 			
 			break;
 
 	}
-	*/
+	editor.setValue(sql);
+	
+	
 	$.post('php_scripts/action.php',{'action':'save','title':title,'sql':sql},function(data){
 		$.post('php_scripts/build_xml.php',{},function(data){
-			if (!ie8){
-				console.log(data);
-			}
+			//if (!ie8){console.log(data);}
 		},'html');
 	},'xml');
+	
 }
 
 function topResize(){
@@ -495,7 +496,7 @@ function run(){
 	
 	
 	$.post('php_scripts/sql.php',{'type':type,'sql':sql},function(data){
-		console.log(data)
+		//console.log(data)
 		$('#content-main').html('');
 		
 		var h = $(window).height()-$('#top').height()-20;

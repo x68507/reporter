@@ -17,10 +17,12 @@
 			$myFile = fopen('../SQL/'.$_POST['title'].'.sql','w');
 				fwrite($myFile,$_POST['sql']);
 			fclose($myFile);
+			require 'build_xml.php';
 			break;
 		case 'delete':
 			//moves file to trash folder
 			rename('../SQL/'.$_POST['title'].'.sql','../SQL/Trash/'.$_POST['title'].' - '.date('ymd').'.sql');
+			require 'build_xml.php';
 			break;
 		case 'get_table':
 			$sql  = $_POST['sql'];

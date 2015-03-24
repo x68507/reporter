@@ -1,8 +1,8 @@
 <?php	
-	if (strtolower(substr(php_sapi_name(),0,3))=='cli'){
+	if (strtolower(substr(php_sapi_name(),0,3))!='cli'){
 		$nl = "<br>";
 		$tab = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>";
-		$whitelist = array('127.0.0.1','::1');
+		$whitelist = array('127.0.0.1','::1','192.168.0.179');
 
 		if(!in_array($_SERVER['REMOTE_ADDR'], $whitelist)){
 			die('You need to run this script via Command Line Interface (CLI).  You cannot run this script through a browser.  Open the command prompt (Windows+R->cmd->enter) and run a script similar to the one below (adjust the director for PHP.exe and the installed directory for Reporter:<br><br><div style=\'padding-left:30px;font-family:"Courier New", Courier, monospace;background:#F0F0F0\'>c:\wamp\bin\php\php5.4.16\php.exe c:\wamp\www\reporter\php_scripts\build_xml.php</div>');
@@ -14,11 +14,13 @@
 	$path = "../SQL";
 
 	$newFile = '../xml_tree.xml';
+	
+	if (file_exists($newFile)){
+		unlink($newFile);
+		echo 'Deleted old file'.$nl;
+	}
 
 	if ($handle = opendir($path)) {
-		
-		if (file_exists($newFile)) unlink($newFile);
-		
 		$xml = "<?xml version='1.0' encoding='utf-8'?>\n";
 		$xml .= "<xml>";
 			while (false !== ($file = readdir($handle))) {
@@ -54,10 +56,9 @@
 		$xml = simplexml_load_file($newFile)->asXML();
 		$doc->loadXML($xml);
 		$doc->save($newFile);
-
-		
+		echo 'Successfully wrote XML file...';
 	}
-	echo 'Successfully wrote XML file...';
+	
 	
 	
 	

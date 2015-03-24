@@ -32,14 +32,14 @@ OPTION (MAXRECURSION 7)</contents>
     <contents>/*Complete Standard BOM for a given top level part number*/
 /*Keep "REV" blank for the lastest revision or enter a revision for a specific search*/
 DECLARE @Part varchar(50) SET @Part =  ''
-DECLARE @REV varchar(3) SET @REV =  ''
+DECLARE @REV varchar(3) SET @REV = ''
 IF (LEN(@Part)&gt;0) BEGIN
 	WITH bom_std AS(
 		SELECT b.fparent, b.fparentrev, b.fcomponent, convert(varchar(255),b.fcomponent) indent, b.fcomprev, b.fqty, 0 AS Level, CAST(b.identity_column AS VARCHAR(255)) AS Path
 		,(CASE when  b.fend_ef_dt&gt;'1900-01-01' THEN 'Expired' ELSE 'Current' END) AS Effectivity
 		,b.fend_ef_dt
 		FROM inboms b
-		WHERE b.fparent like @Part and b.fparentrev like CASE WHEN LEN(@REV)&gt;0 THEN @REV ELSE (select top 1 m.frev from inmastx m where m.fpartno like @Part order by m.frevdt desc,m.frev desc) END
+		WHERE b.fparent like @Part and b.fparentrev like CASE WHEN LEN(@REV)&gt;0 THEN @REV ELSE (select top 1 m.frev from inmastx m where m.fpartno like @Part order by m.frevdt desc) END
 		and cast(b.fend_ef_dt AS datetime) = cast('1900-01-01 00:00:00.000' AS datetime)
 	UNION ALL
 		SELECT b.fparent, b.fparentrev, b.fcomponent,convert(varchar(255),replicate('&amp;nbsp',4*(Level+1)) + b.fcomponent) indent, b.fcomprev, b.fqty, Level + 1, CAST(Path + '.' + CAST(b.identity_column AS VARCHAR(255)) AS VARCHAR(255)) AS Path
@@ -63,12 +63,25 @@ END</contents>
     <vars>@REV</vars>
   </file>
   <file>
+    <filename>Inventory</filename>
+    <contents>DECLARE @Part varchar(50) SET @Part =  ''
+IF (LEN(@Part)&gt;0) BEGIN
+	SELECT i.fpartno '!Part | Part',i.fpartrev 'REV',i.fbinno 'Inventory',i.flocation 'Location'
+	,CAST(CAST(i.fonhand AS decimal(8,1)) AS varchar(8)) 'Qty'
+	
+	FROM inonhd i
+	WHERE i.fpartno LIKE @part
+END</contents>
+    <vars>@Part</vars>
+  </file>
+  <file>
     <filename>Item Master</filename>
-    <contents>DECLARE @Part varchar(60) SET @Part = ''
-DECLARE @Description varchar(60) SET @Description = ''
-DECLARE @SAP varchar(60) SET @SAP = ''
+    <contents>/*son of a gun*/
+DECLARE @Part varchar(60) SET @Part =    ''
+DECLARE @Description varchar(60) SET @Description =    ''
+DECLARE @SAP varchar(60) SET @SAP =    ''
 IF (LEN(@Part)&gt;0 OR LEN(@Description)&gt;0 OR LEN(@SAP)&gt;0) BEGIN
-	SELECT fpartno '!Part | Part',frev '!Rev',fdescript '!Desc | Description',fsource 'Source',CAST(CAST(fonhand AS decimal(8,1)) AS varchar(8)) 'Inventory'
+	SELECT fpartno '!Part | Part',frev '!Rev',fdescript '!Desc. | Description',fsource 'Source',CAST(CAST(fonhand AS decimal(8,1)) AS varchar(8)) 'Inventory'
 		,CAST(CAST(fonorder AS decimal(8,1)) AS varchar(8)) 'OnOrder',CAST(CAST(fbook AS decimal(8,1)) AS varchar(8)) 'Demand',CAST(CAST(fproqty AS decimal(8,1)) AS varchar(8)) 'WIP'
 		,CONVERT(VARCHAR(10),i.flastiss,120) 'Last_Issue',CONVERT(VARCHAR(10),i.flastrcpt,120) 'Last_Receipt'
 		,replace(fcusrchr3,'[SN]','') 'SAP'
@@ -79,6 +92,7 @@ IF (LEN(@Part)&gt;0 OR LEN(@Description)&gt;0 OR LEN(@SAP)&gt;0) BEGIN
 		OR (@SAP='%' AND len(i.fcusrchr3)&gt;0 AND i.fcusrchr3!='[SN]')
 	ORDER BY i.fpartno ASC,i.frevdt DESC,i.frev DESC
 END</contents>
+    <comments>/*son of a gun*/</comments>
     <vars>@Part</vars>
     <vars>@Description</vars>
     <vars>@SAP</vars>
@@ -96,76 +110,66 @@ WHERE inmast.fsource='M' AND jomast.fsono IS NULL ORDER BY somast.fsono</content
   <file>
     <filename>Multi-level BOM</filename>
     <contents>/*For a given part number, provides an indented BOM with Material Availability, Open JO's and Open PO's*/
-/*Keep "REV" blank for the lastest revision or enter a revision for a specific search*/
-DECLARE @Part varchar(60) SET @Part =  '' 
-DECLARE @REV varchar(3) SET @REV =   ''
-IF (LEN(@Part)&gt;0) BEGIN
-    WITH cte AS(
-        SELECT m.fdescript, b.fparent, b.fparentrev, b.fcomponent,convert(varchar(255),b.fcomponent) indent, b.fcomprev, b.fqty, 0 AS Level, CAST(b.identity_column AS VARCHAR(255)) AS Path
-          ,m.fonhand,m.fonorder,m.fqtyinspec,m.fproqty,m.fbook,m.fnonnetqty,m.fsource
-          ,(CASE when  b.fend_ef_dt&gt;'1900-01-01' THEN 'Expired' ELSE 'Current' END) AS Effectivity
-          ,STUFF((SELECT '&lt;br&gt;' + fjobno + ' (' + cast(cast(fquantity as int) as varchar) +')'  + ' [' + CONVERT(varchar(10),fddue_date,126) +']'  FROM jomast WHERE fpartno LIKE b.fcomponent AND fpartrev LIKE b.fcomprev AND (fstatus!='CANCELLED' AND fstatus!='CLOSED' AND fstatus!='COMPLETED') FOR XML PATH ('')), 1, 10, '') JO
-          ,b.fend_ef_dt
-          FROM inboms b
-          JOIN inmast m ON m.fpartno=b.fcomponent AND m.frev=b.fcomprev
-          WHERE b.fparent like @Part and b.fparentrev like CASE WHEN LEN(@REV)&gt;0 THEN @REV ELSE (select top 1 m.frev from inmastx m where m.fpartno like @Part order by m.frevdt desc) END
-          and cast(b.fend_ef_dt AS datetime) = cast('1900-01-01 00:00:00.000' AS datetime)
-      UNION ALL
-        SELECT m.fdescript,b.fparent, b.fparentrev, b.fcomponent,convert(varchar(255),replicate('&amp;nbsp',4*(Level+1)) + b.fcomponent) indent, b.fcomprev, b.fqty, Level + 1, CAST(Path + '.' + CAST(b.identity_column AS VARCHAR(255)) AS VARCHAR(255)) AS Path
-          ,m.fonhand,m.fonorder,m.fqtyinspec,m.fproqty,m.fbook,m.fnonnetqty,m.fsource
-          ,(CASE when  b.fend_ef_dt&gt;'1900-01-01' THEN 'Expired' ELSE 'Current' END) AS Effectivity
-          ,STUFF((SELECT '&lt;br&gt;' + fjobno + ' (' + cast(cast(fquantity as int) as varchar) +')'  + ' [' + CONVERT(varchar(10),fddue_date,126) +']'  FROM jomast WHERE fpartno LIKE b.fcomponent AND fpartrev LIKE b.fcomprev AND (fstatus!='CANCELLED' AND fstatus!='CLOSED' AND fstatus!='COMPLETED') FOR XML PATH ('')), 1, 10, '') JO
-          ,b.fend_ef_dt
-          FROM inboms b
-          JOIN inmast m ON m.fpartno=b.fcomponent AND m.frev=b.fcomprev
-          INNER JOIN cte AS c ON b.fparent = c.fcomponent AND b.fparentrev = c.fcomprev
-          where cast(b.fend_ef_dt AS datetime) = cast('1900-01-01 00:00:00.000' AS datetime) 
-    )
-    SELECT 
-    row_number() over (order by path) 'Row#*',indent '!*Component | Part',fcomprev Rev,fdescript 'Description | Description', CAST(fqty AS decimal(8,1)) 'QtyReq*',fsource Source, Level 'Level*',CAST(fonhand AS int) 'Inventory*'
-    ,CAST(fonorder AS int) 'OnOrder*',CAST(fproqty AS int) 'WIP*',CAST(fbook AS int) 'Demand*'
-    ,CAST((fonhand+fonorder+fqtyinspec+fproqty-fbook-fnonnetqty) AS int) 'Available*',JO '*JO'
-    ,STUFF((SELECT '&lt;br&gt;' + i.fpono +'-'+rtrim(ltrim(i.fitemno)) +' ('+cast(cast(i.fordqty as int) - cast(i.frcpqty as int) as varchar) +') [' + CONVERT(varchar(10),i.flstpdate,126) +']'  FROM poitem i 
-    inner join pomast m on i.fpono=m.fpono WHERE i.fpartno LIKE ('SUB-'+rtrim(ltrim(fcomponent))) AND i.frev LIKE fcomprev  AND (fstatus!='CANCELLED' AND fstatus!='CLOSED') ORDER BY i.flstpdate FOR XML PATH ('')), 1, 10, '') '*PO-LI'
-    FROM cte order by path 
-    OPTION (MAXRECURSION 7)
-END</contents>
+DECLARE @Part varchar(60) SET @Part = '' 
+WITH cte AS(
+    SELECT m.fdescript, b.fparent, b.fparentrev, b.fcomponent,convert(varchar(255),b.fcomponent) indent, b.fcomprev, b.fqty, 0 AS Level, CAST(b.identity_column AS VARCHAR(255)) AS Path
+      ,m.fonhand,m.fonorder,m.fqtyinspec,m.fproqty,m.fbook,m.fnonnetqty,m.fsource
+      ,(CASE when  b.fend_ef_dt&gt;'1900-01-01' THEN 'Expired' ELSE 'Current' END) AS Effectivity
+      ,STUFF((SELECT '&lt;br&gt;' + fjobno + ' (' + cast(cast(fquantity as int) as varchar) +')'  + ' [' + CONVERT(varchar(10),fddue_date,126) +']'  FROM jomast WHERE fpartno LIKE b.fcomponent AND fpartrev LIKE b.fcomprev AND (fstatus!='CANCELLED' AND fstatus!='CLOSED' AND fstatus!='COMPLETED') FOR XML PATH ('')), 1, 10, '') JO
+      ,b.fend_ef_dt
+      FROM inboms b
+      JOIN inmast m ON m.fpartno=b.fcomponent AND m.frev=b.fcomprev
+      WHERE b.fparent like @Part and b.fparentrev like (select top 1 m.frev from inmast m where m.fpartno like @Part order by m.frevdt desc)
+      and cast(b.fend_ef_dt AS datetime) = cast('1900-01-01 00:00:00.000' AS datetime)
+  UNION ALL
+    SELECT m.fdescript,b.fparent, b.fparentrev, b.fcomponent,convert(varchar(255),replicate('&amp;nbsp',4*(Level+1)) + b.fcomponent) indent, b.fcomprev, b.fqty, Level + 1, CAST(Path + '.' + CAST(b.identity_column AS VARCHAR(255)) AS VARCHAR(255)) AS Path
+      ,m.fonhand,m.fonorder,m.fqtyinspec,m.fproqty,m.fbook,m.fnonnetqty,m.fsource
+      ,(CASE when  b.fend_ef_dt&gt;'1900-01-01' THEN 'Expired' ELSE 'Current' END) AS Effectivity
+      ,STUFF((SELECT '&lt;br&gt;' + fjobno + ' (' + cast(cast(fquantity as int) as varchar) +')'  + ' [' + CONVERT(varchar(10),fddue_date,126) +']'  FROM jomast WHERE fpartno LIKE b.fcomponent AND fpartrev LIKE b.fcomprev AND (fstatus!='CANCELLED' AND fstatus!='CLOSED' AND fstatus!='COMPLETED') FOR XML PATH ('')), 1, 10, '') JO
+      ,b.fend_ef_dt
+      FROM inboms b
+      JOIN inmast m ON m.fpartno=b.fcomponent AND m.frev=b.fcomprev
+      INNER JOIN cte AS c ON b.fparent = c.fcomponent AND b.fparentrev = c.fcomprev
+      where cast(b.fend_ef_dt AS datetime) = cast('1900-01-01 00:00:00.000' AS datetime) 
+)
+SELECT 
+row_number() over (order by path) 'Row#*',indent '!*Component | Part',fcomprev Rev,fdescript 'Description | Description', CAST(fqty AS decimal(8,1)) 'QtyReq*',fsource Source, Level 'Level*',CAST(fonhand AS int) 'Inventory*'
+,CAST(fonorder AS int) 'OnOrder*',CAST(fproqty AS int) 'WIP*',CAST(fbook AS int) 'Demand*'
+,CAST((fonhand+fonorder+fqtyinspec+fproqty-fbook-fnonnetqty) AS int) 'Available*',JO '*JO'
+,STUFF((SELECT '&lt;br&gt;' + i.fpono +'-'+rtrim(ltrim(i.fitemno)) +' ('+cast(cast(i.fordqty as int) - cast(i.frcpqty as int) as varchar) +') [' + CONVERT(varchar(10),i.flstpdate,126) +']'  FROM poitem i 
+inner join pomast m on i.fpono=m.fpono WHERE i.fpartno LIKE ('SUB-'+rtrim(ltrim(fcomponent))) AND i.frev LIKE fcomprev  AND (fstatus!='CANCELLED' AND fstatus!='CLOSED') ORDER BY i.flstpdate FOR XML PATH ('')), 1, 10, '') '*PO-LI'
+FROM cte order by path 
+OPTION (MAXRECURSION 7)</contents>
     <comments>/*For a given part number, provides an indented BOM with Material Availability, Open JO's and Open PO's*/</comments>
-    <comments>/*Keep "REV" blank for the lastest revision or enter a revision for a specific search*/</comments>
     <vars>@Part</vars>
-    <vars>@REV</vars>
   </file>
   <file>
     <filename>Order - Job</filename>
     <contents>DECLARE @Part varchar(60) SET @Part = ''
-DECLARE @Description varchar(50) SET @Description = ''
 DECLARE @JO varchar(15) SET @JO = ''
 DECLARE @OnlyOpen varchar(1) SET @OnlyOpen = '1'
-if (LEN(@Part)&gt;0 OR LEN(@JO)&gt;0 OR LEN(@Description)&gt;3) BEGIN
-	SELECT m.fpartno '!*Part | Part',i.fdescript 'Description',fjobno '!*JO | JO',fpartrev 'Rev',fsono 'SO',fstatus 'Status',fcompany 'Company',fjob_name 'JO_Name',fsub_from '*JO_From'
+if (LEN(@Part)&gt;0 OR LEN(@JO)&gt;0) BEGIN
+	SELECT fpartno '!*Part | Part',fjobno '!*JO | JO',fpartrev 'Rev',fsono 'SO',fstatus 'Status',fcompany 'Company',fjob_name 'JO_Name',fsub_from '*JO_From'
 		,CONVERT(VARCHAR(10),fddue_date,120) '*Due_Date',CONVERT(VARCHAR(10),fopen_dt,120) '*Open_Date'
 		,CONVERT(VARCHAR(10),fact_rel,120) '*Rel_Date'
 		,CASE WHEN flastlab = '1900-01-01' THEN '' ELSE CONVERT(VARCHAR(10),flastlab,120) END '*Last_Labor'
 		
 	FROM jomast m 
-	LEFT JOIN inmastx i ON m.fpartno = i.fpartno AND m.fpartrev = i.frev
 	WHERE (m.fstatus = 'OPEN' OR m.fstatus='RELEASED' OR m.fstatus='STARTED' OR @OnlyOpen=0) AND
 		((m.fpartno LIKE CASE WHEN LEN(@Part)&gt;0 THEN '%'+@Part+'%' ELSE '%' END) AND
-		(m.fjobno LIKE CASE WHEN LEN(@JO)&gt;0 THEN '%'+@JO+'%' ELSE '%' END) AND
-		(i.fdescript LIKE CASE WHEN LEN(@Description)&gt;0 THEN '%'+@Description+'%' ELSE '%' END))
+		(m.fjobno LIKE CASE WHEN LEN(@JO)&gt;0 THEN '%'+@JO+'%' ELSE '%' END))
 	ORDER BY m.fpartno,m.fjobno
 END</contents>
     <vars>@Part</vars>
-    <vars>@Description</vars>
     <vars>@JO</vars>
     <vars>@OnlyOpen</vars>
     <vars>@OnlyOpen</vars>
   </file>
   <file>
     <filename>Order - Purchase</filename>
-    <contents>DECLARE @Part varchar(60) SET @Part =   ''
-DECLARE @Company varchar(60) SET @Company =   ''
-DECLARE @PO varchar(10) SET @PO =   ''
+    <contents>DECLARE @Part varchar(60) SET @Part =  ''
+DECLARE @Company varchar(60) SET @Company =  ''
+DECLARE @PO varchar(10) SET @PO =  ''
 DECLARE @OnlyOpen varchar(1) SET @OnlyOpen= '1'
 if (LEN(@Part)&gt;0 OR LEN(@Company)&gt;0 OR LEN(@PO)&gt;3) BEGIN
 	SELECT row_number() over (order by m.fcompany,m.forddate,i.flstpdate) 'Row'
@@ -198,18 +202,17 @@ DECLARE @Company varchar(60) SET @Company = ''
 DECLARE @Description varchar(60) SET @Description = ''
 DECLARE @OnlyOpen varchar(1) SET @OnlyOpen = '0'
 IF (LEN(@Company)&gt;0 OR LEN(@Part)&gt;0 OR (LEN(@Company)&gt;0 AND LEN(@Part)&gt;0) OR (LEN(@Company)&gt;0 AND LEN(@Description)&gt;0)) BEGIN
-	SELECT row_number() over (order by o.fstatus,m.fduedate,i.fsono,i.finumber) 'Row#',m.fsono 'SO | SO',m.fcompany Customer
+	SELECT row_number() over (order by m.fstatus,m.fduedate,i.fsono,i.finumber) 'Row#',m.fsono 'SO | SO',m.fcompany Customer
 	,replace(convert(varchar(10), m.fduedate, 111),'/','-')  DueDate
-	,i.finumber 'Line',i.fpartno 'Part | Part',inv.fdescript 'Description | Description',i.fpartrev Rev,o.fstatus Status
+	,i.finumber 'Line',i.fpartno 'Part | Part',inv.fdescript 'Description | Description',i.fpartrev Rev,m.fstatus Status
 	FROM somast m
 	LEFT JOIN soitem i ON m.fsono=i.fsono
-	LEFT JOIN sochng o ON m.fsono=o.fsono
 	left join inmastx inv ON i.fpartno = inv.fpartno AND i.fpartrev = inv.frev
-	WHERE (o.fstatus = 'OPEN' OR @OnlyOpen=0) AND 
+	WHERE (m.fstatus = 'Open' OR @OnlyOpen=0) AND 
 	((m.fcompany LIKE CASE WHEN LEN(@Company)&gt;0 THEN '%'+@Company+'%' ELSE '%' END) AND
 	(i.fpartno LIKE CASE WHEN LEN(@Part)&gt;0 THEN '%'+@Part+'%' ELSE '%' END) AND
 	(COALESCE(inv.fdescript,'') LIKE CASE WHEN LEN(@Description)&gt;0 THEN '%'+@Description+'%' ELSE '%' END))
-	ORDER BY o.fstatus,m.fduedate,i.fsono,i.finumber
+	ORDER BY m.fstatus,m.fduedate,i.fsono,i.finumber
 END</contents>
     <vars>@Part</vars>
     <vars>@Company</vars>
@@ -219,9 +222,9 @@ END</contents>
   </file>
   <file>
     <filename>PO by PO</filename>
-    <contents>DECLARE @PO varchar(60) SET @PO =  ''
+    <contents>DECLARE @PO varchar(60) SET @PO = ''
 if (LEN(@PO)&gt;0) BEGIN
-	SELECT fpono 'PO | PO',ltrim(rtrim(fpartno)) 'Part No',frev 'REV'
+	SELECT fpono 'PO',ltrim(rtrim(fpartno)) 'Part No',frev 'REV'
 		,ltrim(rtrim(convert(varchar(100),fdescript))) 'Description',fvpartno 'Vendor Part No'
 		,ltrim(rtrim(convert(varchar(100),fvptdes))) 'Vendor Desc.',fjokey
 		,ltrim(rtrim(CONVERT(VARCHAR(10),flstpdate,120))) 'LPD'
@@ -231,29 +234,14 @@ END</contents>
     <vars>@PO</vars>
   </file>
   <file>
-    <filename>Projection Lens - 2pt0x</filename>
-    <contents>/*Enter the current (i_cur) and ideal (i_ideal) image sizes in mm*/
-/*Positive numbers are farther from the P-lens...negative numbers are closer to the P-lens*/
-DECLARE @i_cur decimal(8,4) SET @i_cur =  ''
-DECLARE @i_ideal decimal(8,4) SET @i_ideal =  ''
-IF (LEN(@i_cur)&gt;0 AND LEN(@i_ideal)&gt;0) BEGIN
-    SELECT replace(convert(varchar,cast(ROUND(1000000*(@i_cur-@i_ideal)/@i_cur/1.0586,0) as money),1), '.00','') AS '!Mask-PL Dist. (um)'
-	 , replace(convert(varchar,cast(ROUND((1000000*(@i_cur-@i_ideal)/@i_cur/1.0586)/-3.9854,0) as money),1), '.00','') AS '!Sub-PL Dist. (um)'
-END </contents>
-    <comments>/*Enter the current (i_cur) and ideal (i_ideal) image sizes in mm*/</comments>
-    <comments>/*Positive numbers are farther from the P-lens...negative numbers are closer to the P-lens*/</comments>
-    <vars>@i_cur</vars>
-    <vars>@i_ideal</vars>
-  </file>
-  <file>
     <filename>Projection Lens - 2pt5x</filename>
     <contents>/*Enter the current (i_cur) and ideal (i_ideal) image sizes in mm*/
 /*Positive numbers are farther from the P-lens...negative numbers are closer to the P-lens*/
 DECLARE @i_cur decimal(8,4) SET @i_cur =  ''
 DECLARE @i_ideal decimal(8,4) SET @i_ideal =  ''
 IF (LEN(@i_cur)&gt;0 AND LEN(@i_ideal)&gt;0) BEGIN
-    SELECT replace(convert(varchar,cast(ROUND(1000000*(@i_cur-@i_ideal)/@i_cur/1.306593121,0) as money),1), '.00','') AS '!Mask-PL Dist. (um)'
-	 , replace(convert(varchar,cast(ROUND((1000000*(@i_cur-@i_ideal)/@i_cur/1.306593121)/-6.23344,0) as money),1), '.00','') AS '!Sub-PL Dist. (um)'
+    SELECT replace(convert(varchar,cast(ROUND(1000000*(@i_cur-@i_ideal)/@i_cur/1.306593121,0) as money),1), '.00','') AS 'Mask-PL Dist. (um)'
+	 , replace(convert(varchar,cast(ROUND((1000000*(@i_cur-@i_ideal)/@i_cur/1.306593121)/-6.23344,0) as money),1), '.00','') AS 'Sub-PL Dist. (um)'
 END </contents>
     <comments>/*Enter the current (i_cur) and ideal (i_ideal) image sizes in mm*/</comments>
     <comments>/*Positive numbers are farther from the P-lens...negative numbers are closer to the P-lens*/</comments>
@@ -294,8 +282,8 @@ END</contents>
   </file>
   <file>
     <filename>Single Level BOM</filename>
-    <contents>DECLARE @Part varchar(60) SET @Part =   ''
-DECLARE @REV varchar(3) SET @REV =   ''
+    <contents>DECLARE @Part varchar(60) SET @Part =  ''
+DECLARE @REV varchar(3) SET @REV =  ''
 if (LEN(@Part)&gt;0) BEGIN
     SELECT fparent Parent,fparentrev pRev,fcomponent Component,fcomprev cRev,fdescript Description,fqty Qty,fbommemo Memo
     from inboms
@@ -426,7 +414,7 @@ END</contents>
     <vars>@Part</vars>
   </file>
   <file>
-    <filename>Where Used_JO (old)</filename>
+    <filename>Where Used_JO</filename>
     <contents>/*Looks up every JO given a part was used in based on actual usage*/
 DECLARE @Part varchar(60) SET @Part = ''
 WITH cte AS(
@@ -455,66 +443,30 @@ OPTION (MAXRECURSION 10)</contents>
     <vars>@Part</vars>
   </file>
   <file>
-    <filename>Where Used_JO</filename>
-    <contents>/*Looks up every JO given a part was used in based on actual usage*/
-DECLARE @Part varchar(60) SET @Part = ''
-WITH cte AS(
-		SELECT b.fjobno, b.fparent, b.fparentrev, b.fbompart,convert(varchar(255),b.fparent) indent, b.fbomrev, b.factqty
-		, 0 AS Level, CAST(b.identity_column AS VARCHAR(255)) AS Path
-		
-		FROM jodbom b
-		WHERE b.fbompart like @Part and b.fbomrev like (select top 1 m.frev from inmastx m where m.fpartno like @Part order by m.frevdt desc)
-	UNION ALL
-		SELECT b.fjobno,b.fparent, b.fparentrev, b.fbompart,convert(varchar(255),replicate('&amp;nbsp',4*(Level+1)) + b.fparent) indent, b.fbomrev
-		, b.factqty, Level + 1,CAST(Path + '.' + CAST(b.identity_column AS VARCHAR(255)) AS VARCHAR(255)) AS Path
-		
-		FROM jodbom b
-		INNER JOIN cte AS c ON c.fparent = b.fbompart AND c.fparentrev = b.fbomrev
-)
-SELECT row_number() over (order by path) 'Row#',fjobno 'JO | JO',indent '!Component | Part',ISNULL(m.fdescript,'[NULL]') Description,fparentrev Rev, Level
-FROM cte 
-LEFT JOIN inmastx m ON m.fpartno=cte.fparent AND m.frev=cte.fparentrev
-GROUP BY fjobno,indent,fdescript,fparentrev,Level,path
-order by path
-OPTION (MAXRECURSION 10)</contents>
-    <comments>/*Looks up every JO given a part was used in based on actual usage*/</comments>
-    <vars>@Part</vars>
-  </file>
-  <file>
     <filename>Where Used_Std</filename>
     <contents>/*Looks up every assembly a given part is used in based on M2M's standard BOM*/
-/*Keep "REV" blank for the lastest revision or enter a revision for a specific search*/
 DECLARE @Part varchar(60) SET @Part = ''
-DECLARE @REV varchar(3) SET @REV =''
-IF (LEN(@Part)&gt;0) BEGIN
-	WITH cte AS(
-	    SELECT m.fdescript, b.fparent, b.fparentrev,  LTRIM(RTRIM(b.fcomponent)) 'fcomponent',convert(varchar(255),b.fparent) indent, b.fcomprev, b.fqty, 0 AS Level, CAST(m.identity_column AS VARCHAR(255)) AS Path
-			,m.identity_column    
-	      FROM inboms b
-	      JOIN inmastx m ON m.fpartno=b.fparent AND m.frev=b.fparentrev
-	      WHERE b.fcomponent like @Part and b.fcomprev like CASE WHEN LEN(@REV)&gt;0 THEN @REV ELSE (select top 1 m.frev from inmastx m where m.fpartno like @Part order by m.frevdt desc,m.frev desc) END
-	  UNION ALL
-	    SELECT m.fdescript,b.fparent, b.fparentrev, LTRIM(RTRIM(b.fcomponent)) 'fcomponent',convert(varchar(255),replicate('&amp;nbsp',4*(Level+1)) + b.fparent) indent, b.fcomprev, b.fqty, Level + 1,CAST(Path + '.' + CAST(m.identity_column AS VARCHAR(255)) AS VARCHAR(255)) AS Path
-	      ,m.identity_column
-			FROM inboms b
-	      JOIN inmastx m ON m.fpartno=b.fparent AND m.frev=b.fparentrev
-	      INNER JOIN cte AS c ON c.fparent = b.fcomponent AND c.fparentrev = b.fcomprev
-	)
-	SELECT '0' 'Row',@Part '!Parent | Part','--' 'Description',
-		CASE WHEN LEN(@REV)&gt;0 THEN @REV ELSE (select top 1 m.frev from inmastx m where m.fpartno like @Part order by m.frevdt desc,m.frev desc) END 'Rev'
-		,'-1' 'Level'
-	UNION
-	SELECT DISTINCT row_number() over (order by path) 'Row',indent '!Parent | Part',fdescript Description,fparentrev Rev, Level
-	FROM cte
-	WHERE identity_column IN (SELECT MIN(identity_column) FROM cte GROUP BY identity_column)
-	GROUP BY identity_column,indent,fdescript,fparentrev,Level,path
-	ORDER BY 'Row'
-	
-	OPTION (MAXRECURSION 10)
-END</contents>
+WITH cte AS(
+    SELECT m.fdescript, b.fparent, b.fparentrev,  LTRIM(RTRIM(b.fcomponent)) 'fcomponent',convert(varchar(255),b.fparent) indent, b.fcomprev, b.fqty, 0 AS Level, CAST(m.identity_column AS VARCHAR(255)) AS Path
+		,m.identity_column    
+      FROM inboms b
+      JOIN inmastx m ON m.fpartno=b.fparent AND m.frev=b.fparentrev
+      WHERE b.fcomponent like @Part and b.fcomprev like (select top 1 m.frev from inmastx m where m.fpartno like @Part order by m.frevdt desc)
+  UNION ALL
+    SELECT m.fdescript,b.fparent, b.fparentrev, LTRIM(RTRIM(b.fcomponent)) 'fcomponent',convert(varchar(255),replicate('&amp;nbsp',4*(Level+1)) + b.fparent) indent, b.fcomprev, b.fqty, Level + 1,CAST(Path + '.' + CAST(m.identity_column AS VARCHAR(255)) AS VARCHAR(255)) AS Path
+      ,m.identity_column
+		FROM inboms b
+      JOIN inmastx m ON m.fpartno=b.fparent AND m.frev=b.fparentrev
+      INNER JOIN cte AS c ON c.fparent = b.fcomponent AND c.fparentrev = b.fcomprev
+)
+SELECT DISTINCT row_number() over (order by path) 'Row#',indent '!Parent | Part',fdescript Description,fparentrev Rev, Level
+FROM cte
+WHERE identity_column IN (SELECT MIN(identity_column) FROM cte GROUP BY identity_column)
+GROUP BY identity_column,indent,fdescript,fparentrev,Level,path
+ORDER BY 'Row#'
+
+OPTION (MAXRECURSION 10)</contents>
     <comments>/*Looks up every assembly a given part is used in based on M2M's standard BOM*/</comments>
-    <comments>/*Keep "REV" blank for the lastest revision or enter a revision for a specific search*/</comments>
     <vars>@Part</vars>
-    <vars>@REV</vars>
   </file>
 </xml>

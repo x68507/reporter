@@ -16,7 +16,8 @@ Download and install a webserver & PHP server; XAMPP or WAMP for Windows or LAMP
 1. Open the config.php file and modify the given variables to connect to your database
 2. Open the sqlsrv.php file and change the _data-type_ attribute in the <html> tag to your support database type.  Currently the following databases are supported:
  * MySQL
- * MSSQL (note that you need to install the SQLSRV driver for this database located at http://www.microsoft.com/en-us/download/details.aspx?id=20098)
+ * MSSQL (note that you need to install the SQLSRV driver for this database located at http://www.microsoft.com/en-us/download/details.aspx?id=20098 or http://robsphp.blogspot.com/2012/06/unofficial-microsoft-sql-server-driver.html for PHP 5.5)
+ 
 3. Open jscript.js file and change the password from variable to whatever you want the master password to be (like I said, this was not designed to keep people out of your database).
 
 
